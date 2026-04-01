@@ -1,2 +1,4 @@
 .DS_STORE
 ATH_videos/*
+ATH_videos_processed/*
+landmarks_summary/*
