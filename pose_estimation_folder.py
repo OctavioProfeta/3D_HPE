@@ -77,12 +77,12 @@ def pose_estimation_from_folder(folder_path, output_folder_path):
                 # Collect landmarks (x, y, z, visibility) for this frame in a serializable form
                 landmarks_data = []
                 # Try common attributes that store landmarks
-                pose_landmarks = getattr(results, 'pose_landmarks', None)
+                pose_landmarks = getattr(results, 'pose_world_landmarks', None)
                 if pose_landmarks is None:
                     pose_landmarks = getattr(results, 'pose_world_landmarks', None)
                 # Some result variants may store landmarks under different attributes
                 if pose_landmarks is None and hasattr(results, 'pose_results'):
-                    pose_landmarks = getattr(results.pose_results, 'landmark', None)
+                    pose_landmarks = getattr(results.pose_results, 'world_landmark', None)
 
                 if pose_landmarks is not None:
                     landmark_list = getattr(pose_landmarks, 'landmark', None) or pose_landmarks
@@ -90,6 +90,8 @@ def pose_estimation_from_folder(folder_path, output_folder_path):
                         for idx, lm in enumerate(landmark_list):
                             try:
                                 name = mp_pose.PoseLandmark(idx).name
+                                if mp_pose.PoseLandmark(idx) in excluded_landmarks:
+                                    continue
                             except Exception:
                                 name = str(idx)
                             visibility = getattr(lm, 'visibility', None)
