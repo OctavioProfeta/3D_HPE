@@ -46,20 +46,28 @@ def pose_estimation_from_folder(folder_path, output_folder_path):
             for video_name in os.listdir(session_folder_path):
                 video_path = os.path.join(session_folder_path, video_name)
                 output_session_folder_path = os.path.join(output_folder_path, ath, session)
-                output_path = os.path.join(output_session_folder_path, pathlib.Path(video_name).stem + "_annoted" + pathlib.Path(video_name).suffix)
+                output_path = os.path.join(output_session_folder_path, pathlib.Path(video_name).stem + "_annoted.avi")
+
+                if pathlib.Path(output_path).exists():
+                    print(f"Output {output_path} already exists. Skipping.")
+                    continue
+
                 cv2.startWindowThread()
                 cap = cv2.VideoCapture(video_path)
 
                 avg_fps = []
 
                 width, height, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-                video_writer = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*"avc1"), float(fps), (width, height))
+                video_writer = cv2.VideoWriter(output_path, fourcc=cv2.VideoWriter_fourcc(*"MJPG"), fps=float(fps), frameSize=(width, height))
+
                 os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-                landmark_summary = "landmarks_summary/" + ath + "/"  + session + "/" + pathlib.Path(output_path).stem + "_results.json"           
+                landmark_summary = "landmarks_summary/" + folder_path + '/' + ath + "/"  + session + "/" + pathlib.Path(output_path).stem + "_results.json"           
                 os.makedirs(os.path.dirname(landmark_summary), exist_ok=True)
                 frames_landmarks = []
                 frame_idx = 0
+                
+                print(f"Processing {video_path} with output {output_path}")
 
                 while cap.isOpened():
                     ret, frame = cap.read()
@@ -110,8 +118,8 @@ def pose_estimation_from_folder(folder_path, output_folder_path):
                     fps = 1 / process_time if process_time > 0 else 0
                     avg_fps.append(fps)
                     fps = sum(avg_fps) / len(avg_fps)
-
-                    video_writer.write(frame)
+                    if pathlib.Path(output_path).exists():
+                        video_writer.write(frame)
                     cv2.imshow(str(), frame)
                     
                     if cv2.waitKey(1) & 0xFF == ord("q"):

@@ -40,7 +40,6 @@ for landmark in excluded_landmarks:
 pose =  mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
 def pose_estimation_from_folder(folder_path, output_folder_path):
-    ath = folder_path.split("/")[-1]
     for session in os.listdir(folder_path):
         session_folder_path = os.path.join(folder_path, session)
         for video_name in os.listdir(session_folder_path):
@@ -56,7 +55,7 @@ def pose_estimation_from_folder(folder_path, output_folder_path):
             video_writer = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*"avc1"), float(fps), (width, height))
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-            landmark_summary = "landmarks_summary/" + ath + "/"  + session + "/" + pathlib.Path(output_path).stem + "_results.json"           
+            landmark_summary = "landmarks_summary/" + folder_path + "/"  + session + "/" + pathlib.Path(output_path).stem + "_results.json"           
             os.makedirs(os.path.dirname(landmark_summary), exist_ok=True)
             frames_landmarks = []
             frame_idx = 0

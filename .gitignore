@@ -2,3 +2,17 @@
 ATH_videos/*
 ATH_videos_processed/*
 landmarks_summary/*
+ATH_videos_avi/*
+ATH_videos_mp4/*
+ATH_videos_avi_processed/*
+ATH_videos_mp4_processed/*
+test.avi
+result.mp4
+test_annoted.avi
+abduction_adduction.mp4
+orientation.mp4
+angles_comparison.png
+ATH01_S1_PreCUT03.csv
+ATH04S1.csv
+test.json
+frontal_plane_normal_vector_angles.mp4
