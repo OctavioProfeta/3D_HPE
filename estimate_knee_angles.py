@@ -1,6 +1,8 @@
-import json
+import json, os, pathlib, cv2, sys
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+
 
 def angle_between_points(p1, p2, p3):
     a = np.array(p1)
@@ -51,3 +53,63 @@ def projection_onto_the_frontal_plane(v1, v2, n):
     v1_proj = n - np.dot(v1, n) * v1
     v2_proj = n - np.dot(v2, n) * v2
     return v1_proj, v2_proj
+
+def compute_knee_angles(folder_path, output_folder_path):
+    for ath in os.listdir(folder_path):
+        for session in os.listdir(os.path.join(folder_path, ath)):
+            session_folder_path = os.path.join(folder_path, ath, session)
+            for json_file in os.listdir(session_folder_path):
+                json_path = os.path.join(session_folder_path, json_file)
+                output_session_folder_path = os.path.join(output_folder_path, ath, session)
+                if not os.path.exists(output_session_folder_path):
+                    os.makedirs(output_session_folder_path)
+                output_path = os.path.join(output_session_folder_path, json_file.replace('_annoted_results.json', '_angles.json'))
+
+                try:
+                    with open(json_path, 'r') as file:
+                        data = json.load(file)
+                    print(f"Processing {json_path}...")
+                except FileNotFoundError:
+                    print(f"Error: The file {json_path} was not found.")
+                
+                frames_list = list(data.items())[4][1]
+                normal_vector_angle_list = []
+                abduction_adduction_angle_list = []
+                old_angle_knee = 0
+                old_angle_normal_vector = 0
+                unmarked_frames = []
+
+                for frame in frames_list:
+                    if not frame['landmarks']:
+                        unmarked_frames.append(frame)
+                        normal_vector_angle_list.append(old_angle_normal_vector)  # Append the last known angle for unmarked frames
+                        abduction_adduction_angle_list.append(old_angle_knee)  # Append the last known angle for unmarked frames
+                        continue
+                    else:
+                        left_hip = [a for a in frame['landmarks'] if a['name'] == 'LEFT_HIP']
+                        left_shoulder = [a for a in frame['landmarks'] if a['name'] == 'LEFT_SHOULDER']
+                        right_hip = [a for a in frame['landmarks'] if a['name'] == 'RIGHT_HIP']
+                        right_shoulder = [a for a in frame['landmarks'] if a['name'] == 'RIGHT_SHOULDER']
+                        left_knee = [a for a in frame['landmarks'] if a['name'] == 'LEFT_KNEE']
+                        left_ankle = [a for a in frame['landmarks'] if a['name'] == 'LEFT_ANKLE']
+                        normal_vector = frontal_plane_normal_vector(left_hip, right_hip, left_shoulder, right_shoulder)
+                        angle = normal_vector_angle(normal_vector)
+                        femur = np.array([left_knee[0]['x'] - left_hip[0]['x'], left_knee[0]['y'] - left_hip[0]['y'], left_knee[0]['z'] - left_hip[0]['z']])
+                        tibia = np.array([left_ankle[0]['x'] - left_knee[0]['x'], left_ankle[0]['y'] - left_knee[0]['y'], left_ankle[0]['z'] - left_knee[0]['z']])
+                        femur_proj, tibia_proj = projection_onto_the_frontal_plane(femur, tibia, normal_vector)
+                        abduction_adduction_angle = angle_between_vectors(femur_proj, tibia_proj)
+                        normal_vector_angle_list.append(angle)
+                        abduction_adduction_angle_list.append(abduction_adduction_angle)
+                        old_angle_knee = abduction_adduction_angle
+                        old_angle_normal_vector = angle
+                
+                # Save Abduction/Adduction angles and Normal Vector angles to a CSV file with Headers for frame_id, normal_angle, abduction_angle
+                with open(output_path, 'w') as f:
+                    f.write('frame_id,normal_angle,abduction_angle\n')
+                    for i in range(len(frames_list)):
+                        f.write(f"{frames_list[i]['frame']},{normal_vector_angle_list[i]},{abduction_adduction_angle_list[i]}\n")
+
+    
+
+if __name__ == "__main__":
+    compute_knee_angles(sys.argv[1], sys.argv[2])
