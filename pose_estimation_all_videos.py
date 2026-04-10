@@ -1,7 +1,7 @@
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
-import cv2, time, sys, os, pathlib, json
+import cv2, time, sys, os, pathlib, json, imageio
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -44,9 +44,10 @@ def pose_estimation_from_folder(folder_path, output_folder_path):
         for session in os.listdir(os.path.join(folder_path, ath)):
             session_folder_path = os.path.join(folder_path, ath, session)
             for video_name in os.listdir(session_folder_path):
+                frames_list = []
                 video_path = os.path.join(session_folder_path, video_name)
                 output_session_folder_path = os.path.join(output_folder_path, ath, session)
-                output_path = os.path.join(output_session_folder_path, pathlib.Path(video_name).stem + "_annoted.avi")
+                output_path = os.path.join(output_session_folder_path, pathlib.Path(video_name).stem + "_annoted.mp4")
 
                 if pathlib.Path(output_path).exists():
                     print(f"Output {output_path} already exists. Skipping.")
@@ -58,7 +59,7 @@ def pose_estimation_from_folder(folder_path, output_folder_path):
                 avg_fps = []
 
                 width, height, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-                video_writer = cv2.VideoWriter(output_path, fourcc=cv2.VideoWriter_fourcc(*"MJPG"), fps=float(fps), frameSize=(width, height))
+                video_writer = cv2.VideoWriter(output_path, fourcc=cv2.VideoWriter_fourcc(*"MPJG"), fps=float(fps), frameSize=(width, height))
 
                 os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
@@ -118,8 +119,8 @@ def pose_estimation_from_folder(folder_path, output_folder_path):
                     fps = 1 / process_time if process_time > 0 else 0
                     avg_fps.append(fps)
                     fps = sum(avg_fps) / len(avg_fps)
-                    if pathlib.Path(output_path).exists():
-                        video_writer.write(frame)
+                    frames_list.append(frame)
+                    video_writer.write(frame)
                     cv2.imshow(str(), frame)
                     
                     if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -145,6 +146,10 @@ def pose_estimation_from_folder(folder_path, output_folder_path):
                 cv2.destroyAllWindows()
                 for i in range (1,5):
                     cv2.waitKey(1)
+                
+                break
+            break
+        break
 
 if __name__ == "__main__":
     pose_estimation_from_folder(sys.argv[1], sys.argv[2])

@@ -63,7 +63,7 @@ def compute_knee_angles(folder_path, output_folder_path):
                 output_session_folder_path = os.path.join(output_folder_path, ath, session)
                 if not os.path.exists(output_session_folder_path):
                     os.makedirs(output_session_folder_path)
-                output_path = os.path.join(output_session_folder_path, json_file.replace('_annoted_results.json', '_angles.json'))
+                output_path = os.path.join(output_session_folder_path, json_file.replace('_annoted_results.json', '_angles.csv'))
 
                 try:
                     with open(json_path, 'r') as file:
