@@ -74,8 +74,10 @@ def compute_knee_angles(folder_path, output_folder_path):
                 
                 frames_list = list(data.items())[4][1]
                 normal_vector_angle_list = []
-                abduction_adduction_angle_list = []
-                old_angle_knee = 0
+                left_abduction_adduction_angle_list = []
+                right_abduction_adduction_angle_list = []
+                left_old_angle_knee = 0
+                right_old_angle_knee = 0
                 old_angle_normal_vector = 0
                 unmarked_frames = []
 
@@ -83,7 +85,8 @@ def compute_knee_angles(folder_path, output_folder_path):
                     if not frame['landmarks']:
                         unmarked_frames.append(frame)
                         normal_vector_angle_list.append(old_angle_normal_vector)  # Append the last known angle for unmarked frames
-                        abduction_adduction_angle_list.append(old_angle_knee)  # Append the last known angle for unmarked frames
+                        left_abduction_adduction_angle_list.append(left_old_angle_knee)  # Append the last known angle for unmarked frames
+                        right_abduction_adduction_angle_list.append(right_old_angle_knee)  # Append the last known angle for unmarked frames
                         continue
                     else:
                         left_hip = [a for a in frame['landmarks'] if a['name'] == 'LEFT_HIP']
@@ -92,22 +95,30 @@ def compute_knee_angles(folder_path, output_folder_path):
                         right_shoulder = [a for a in frame['landmarks'] if a['name'] == 'RIGHT_SHOULDER']
                         left_knee = [a for a in frame['landmarks'] if a['name'] == 'LEFT_KNEE']
                         left_ankle = [a for a in frame['landmarks'] if a['name'] == 'LEFT_ANKLE']
+                        right_knee = [a for a in frame['landmarks'] if a['name'] == 'RIGHT_KNEE']
+                        right_ankle = [a for a in frame['landmarks'] if a['name'] == 'RIGHT_ANKLE']
                         normal_vector = frontal_plane_normal_vector(left_hip, right_hip, left_shoulder, right_shoulder)
                         angle = normal_vector_angle(normal_vector)
-                        femur = np.array([left_knee[0]['x'] - left_hip[0]['x'], left_knee[0]['y'] - left_hip[0]['y'], left_knee[0]['z'] - left_hip[0]['z']])
-                        tibia = np.array([left_ankle[0]['x'] - left_knee[0]['x'], left_ankle[0]['y'] - left_knee[0]['y'], left_ankle[0]['z'] - left_knee[0]['z']])
-                        femur_proj, tibia_proj = projection_onto_the_frontal_plane(femur, tibia, normal_vector)
-                        abduction_adduction_angle = angle_between_vectors(femur_proj, tibia_proj)
+                        left_femur = np.array([left_knee[0]['x'] - left_hip[0]['x'], left_knee[0]['y'] - left_hip[0]['y'], left_knee[0]['z'] - left_hip[0]['z']])
+                        left_tibia = np.array([left_ankle[0]['x'] - left_knee[0]['x'], left_ankle[0]['y'] - left_knee[0]['y'], left_ankle[0]['z'] - left_knee[0]['z']])
+                        right_femur = np.array([right_knee[0]['x'] - right_hip[0]['x'], right_knee[0]['y'] - right_hip[0]['y'], right_knee[0]['z'] - right_hip[0]['z']])
+                        right_tibia = np.array([right_ankle[0]['x'] - right_knee[0]['x'], right_ankle[0]['y'] - right_knee[0]['y'], right_ankle[0]['z'] - right_knee[0]['z']])
+                        left_femur_proj, left_tibia_proj = projection_onto_the_frontal_plane(left_femur, left_tibia, normal_vector)
+                        right_femur_proj, right_tibia_proj = projection_onto_the_frontal_plane(right_femur, right_tibia, normal_vector)
+                        left_abduction_adduction_angle = angle_between_vectors(left_femur_proj, left_tibia_proj)
+                        right_abduction_adduction_angle = angle_between_vectors(right_femur_proj, right_tibia_proj)
                         normal_vector_angle_list.append(angle)
-                        abduction_adduction_angle_list.append(abduction_adduction_angle)
-                        old_angle_knee = abduction_adduction_angle
+                        left_abduction_adduction_angle_list.append(left_abduction_adduction_angle)
+                        right_abduction_adduction_angle_list.append(right_abduction_adduction_angle)
+                        left_old_angle_knee = left_abduction_adduction_angle
+                        right_old_angle_knee = right_abduction_adduction_angle
                         old_angle_normal_vector = angle
                 
                 # Save Abduction/Adduction angles and Normal Vector angles to a CSV file with Headers for frame_id, normal_angle, abduction_angle
                 with open(output_path, 'w') as f:
-                    f.write('frame_id,normal_angle,abduction_angle\n')
+                    f.write('frame_id,normal_angle,left_abduction_angle,right_abduction_angle\n')
                     for i in range(len(frames_list)):
-                        f.write(f"{frames_list[i]['frame']},{normal_vector_angle_list[i]},{abduction_adduction_angle_list[i]}\n")
+                        f.write(f"{frames_list[i]['frame']},{normal_vector_angle_list[i]},{left_abduction_adduction_angle_list[i]},{right_abduction_adduction_angle_list[i]}\n")
 
     
 
