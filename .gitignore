@@ -16,5 +16,14 @@ ATH01_S1_PreCUT03.csv
 ATH04S1.csv
 test.json
 frontal_plane_normal_vector_angles.mp4
-knee_angle_csv
+knee_angles_csv
 Angle_plots
+*.mp4
+*.avi
+*.json
+*.csv
+*.png
+*.jpg
+*.jpeg
+*.bmp
+*.gif

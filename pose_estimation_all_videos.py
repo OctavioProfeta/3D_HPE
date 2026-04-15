@@ -85,18 +85,14 @@ def pose_estimation_from_folder(folder_path, output_folder_path):
 
                     # Collect landmarks (x, y, z, visibility) for this frame in a serializable form
                     landmarks_data = []
-                    # Try common attributes that store landmarks
-                    pose_landmarks = getattr(results, 'pose_world_landmarks', None)
-                    if pose_landmarks is None:
-                        pose_landmarks = getattr(results, 'pose_world_landmarks', None)
-                    # Some result variants may store landmarks under different attributes
-                    if pose_landmarks is None and hasattr(results, 'pose_results'):
-                        pose_landmarks = getattr(results.pose_results, 'landmark', None)
+                    world_landmarks = getattr(results, 'pose_world_landmarks', None)
+                    pose_landmarks = getattr(results, 'pose_landmarks', None)
 
                     if pose_landmarks is not None:
-                        landmark_list = getattr(pose_landmarks, 'landmark', None) or pose_landmarks
-                        if landmark_list:
-                            for idx, lm in enumerate(landmark_list):
+                        pose_landmark_list = getattr(pose_landmarks, 'landmark', None) or pose_landmarks
+                        world_landmark_list = getattr(world_landmarks, 'landmark', None) or world_landmarks
+                        if world_landmark_list:
+                            for idx, lm in enumerate(world_landmark_list):
                                 try:
                                     name = mp_pose.PoseLandmark(idx).name
                                     if mp_pose.PoseLandmark(idx) in excluded_landmarks:
@@ -112,6 +108,20 @@ def pose_estimation_from_folder(folder_path, output_folder_path):
                                     'z': float(lm.z),
                                     'visibility': float(visibility) if visibility is not None else None
                                 })
+                        if pose_landmark_list:
+                            for idx, lm in enumerate(pose_landmark_list):
+                                name = mp_pose.PoseLandmark(idx).name
+                                if name == 'LEFT_HIP' or name == 'RIGHT_HIP':
+                                    visibility = getattr(lm, 'visibility', None)
+                                    landmarks_data.append({
+                                        'index': idx,
+                                        'name': name + "_frame_reference",
+                                        'x': float(lm.x),
+                                        'y': float(lm.y),
+                                        'z': float(lm.z),
+                                        'visibility': float(visibility) if visibility is not None else None,
+                                        'world': True
+                                    })
 
                     frames_landmarks.append({'frame': frame_idx, 'landmarks': landmarks_data})
                     frame_idx += 1
