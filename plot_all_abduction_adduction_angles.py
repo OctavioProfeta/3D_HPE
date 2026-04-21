@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import os, sys
 
 def plot_all_abduction_adduction_angles(input_folder, output_folder):
-    for ath in os.listdir(input_folder):
-        for session in os.listdir(os.path.join(input_folder, ath)):
+    for ath in sorted(os.listdir(input_folder)):
+        for session in sorted(os.listdir(os.path.join(input_folder, ath))):
             print(f'Processing {ath} {session}...')
             for side in ['left', 'right']:
                 knee = side + '_abduction_angle'

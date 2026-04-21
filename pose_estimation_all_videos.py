@@ -39,19 +39,26 @@ for landmark in excluded_landmarks:
 
 pose =  mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
-def pose_estimation_from_folder(folder_path, output_folder_path):
+def create_folders(folder_path, output_folder_path):
     for ath in os.listdir(folder_path):
         for session in os.listdir(os.path.join(folder_path, ath)):
+            os.makedirs(os.path.join(output_folder_path, ath, session), exist_ok=True)
+
+def pose_estimation_from_folder(folder_path, output_folder_path):
+    create_folders(folder_path, output_folder_path)
+    for ath in sorted(os.listdir(folder_path)):
+        for session in sorted(os.listdir(os.path.join(folder_path, ath))):
             session_folder_path = os.path.join(folder_path, ath, session)
-            for video_name in os.listdir(session_folder_path):
-                frames_list = []
+            for video_name in sorted(os.listdir(session_folder_path)):
+                start_time_processing = time.time()
+                save_video = True
                 video_path = os.path.join(session_folder_path, video_name)
                 output_session_folder_path = os.path.join(output_folder_path, ath, session)
                 output_path = os.path.join(output_session_folder_path, pathlib.Path(video_name).stem + "_annoted.mp4")
 
                 if pathlib.Path(output_path).exists():
-                    print(f"Output {output_path} already exists. Skipping.")
-                    continue
+                    print(f"Output {output_path} video already exists. Computing values summary only.")
+                    save_video = False
 
                 cv2.startWindowThread()
                 cap = cv2.VideoCapture(video_path)
@@ -59,11 +66,14 @@ def pose_estimation_from_folder(folder_path, output_folder_path):
                 avg_fps = []
 
                 width, height, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-                video_writer = cv2.VideoWriter(output_path, fourcc=cv2.VideoWriter_fourcc(*"MPJG"), fps=float(fps), frameSize=(width, height))
+                if save_video:
+                    video_writer = cv2.VideoWriter(output_path, fourcc=cv2.VideoWriter_fourcc(*"H264"), fps=float(fps), frameSize=(width, height))
+                    os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-                os.makedirs(os.path.dirname(output_path), exist_ok=True)
-
-                landmark_summary = "landmarks_summary/" + folder_path + '/' + ath + "/"  + session + "/" + pathlib.Path(output_path).stem + "_results.json"           
+                landmark_summary = "landmarks_summary/" + folder_path + '/' + ath + "/"  + session + "/" + pathlib.Path(output_path).stem + "_results.json"
+                if pathlib.Path(landmark_summary).exists():    
+                    print(f"Landmark summary {landmark_summary} already exists. Skipping landmark extraction.")
+                    continue    
                 os.makedirs(os.path.dirname(landmark_summary), exist_ok=True)
                 frames_landmarks = []
                 frame_idx = 0
@@ -81,7 +91,8 @@ def pose_estimation_from_folder(folder_path, output_folder_path):
                     results = pose.process(rbg_frame)
                     process_time = time.time() - start_time
 
-                    mp_drawing.draw_landmarks(frame, results.pose_landmarks, connections=custom_connections, landmark_drawing_spec=custom_style)
+                    if save_video:
+                        mp_drawing.draw_landmarks(frame, results.pose_landmarks, connections=custom_connections, landmark_drawing_spec=custom_style)
 
                     # Collect landmarks (x, y, z, visibility) for this frame in a serializable form
                     landmarks_data = []
@@ -129,9 +140,9 @@ def pose_estimation_from_folder(folder_path, output_folder_path):
                     fps = 1 / process_time if process_time > 0 else 0
                     avg_fps.append(fps)
                     fps = sum(avg_fps) / len(avg_fps)
-                    frames_list.append(frame)
-                    video_writer.write(frame)
-                    cv2.imshow(str(), frame)
+                    if save_video:
+                        video_writer.write(frame)
+                        cv2.imshow(str(), frame)
                     
                     if cv2.waitKey(1) & 0xFF == ord("q"):
                         break
@@ -149,17 +160,19 @@ def pose_estimation_from_folder(folder_path, output_folder_path):
 
                 print(f"Wrote summary to {landmark_summary}. Processed {frame_idx} frames.")
 
-
-                video_writer.release()
+                if save_video:
+                    video_writer.release()
                 cap.release()
-
-                cv2.destroyAllWindows()
-                for i in range (1,5):
-                    cv2.waitKey(1)
                 
-                break
-            break
-        break
+                if save_video:
+                    cv2.destroyAllWindows()
+                    for i in range (1,5):
+                        cv2.waitKey(1)
+
+                end_time = time.time()
+                print(f"Finished processing {video_path} in {end_time - start_time_processing:.2f} seconds.")
+
+                
 
 if __name__ == "__main__":
     pose_estimation_from_folder(sys.argv[1], sys.argv[2])

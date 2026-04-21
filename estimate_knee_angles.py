@@ -55,10 +55,10 @@ def projection_onto_plane(v1, v2, n):
 
 
 def compute_knee_angles(folder_path, output_folder_path):
-    for ath in os.listdir(folder_path):
-        for session in os.listdir(os.path.join(folder_path, ath)):
+    for ath in sorted(os.listdir(folder_path)):
+        for session in sorted(os.listdir(os.path.join(folder_path, ath))):
             session_folder_path = os.path.join(folder_path, ath, session)
-            for json_file in os.listdir(session_folder_path):
+            for json_file in sorted(os.listdir(session_folder_path)):
                 json_path = os.path.join(session_folder_path, json_file)
                 output_session_folder_path = os.path.join(output_folder_path, ath, session)
                 if not os.path.exists(output_session_folder_path):
@@ -79,12 +79,14 @@ def compute_knee_angles(folder_path, output_folder_path):
                 right_abduction_adduction_angle_list = []
                 left_flexion_extension_angle_list = []
                 right_flexion_extension_angle_list = []
+                mid_hip_y_frame_list = []
                 left_abduction_adduction_old_angle = 0
                 right_abduction_adduction_old_angle = 0
                 left_flexion_extension_old_angle = 0
                 right_flexion_extension_old_angle = 0
                 frontal_plane_old_angle = 0
                 sagittal_plane_old_angle = 0
+                mid_hip_y_frame_old_value = 0
                 unmarked_frames = []
 
                 for frame in frames_list:
@@ -96,6 +98,7 @@ def compute_knee_angles(folder_path, output_folder_path):
                         right_abduction_adduction_angle_list.append(right_abduction_adduction_old_angle)  # Append the last known angle for unmarked frames
                         left_flexion_extension_angle_list.append(left_flexion_extension_old_angle)  # Append the last known angle for unmarked frames
                         right_flexion_extension_angle_list.append(right_flexion_extension_old_angle)  # Append the last known angle for unmarked frames
+                        mid_hip_y_frame_list.append(np.nan) # Append NaN for unmarked frames (we later extrapolate)
                         continue
                     else:
                         left_hip = [a for a in frame['landmarks'] if a['name'] == 'LEFT_HIP']
@@ -106,6 +109,11 @@ def compute_knee_angles(folder_path, output_folder_path):
                         left_ankle = [a for a in frame['landmarks'] if a['name'] == 'LEFT_ANKLE']
                         right_knee = [a for a in frame['landmarks'] if a['name'] == 'RIGHT_KNEE']
                         right_ankle = [a for a in frame['landmarks'] if a['name'] == 'RIGHT_ANKLE']
+                        right_hip_frame = [a for a in frame['landmarks'] if a['name'] == 'RIGHT_HIP_frame_reference']
+                        left_hip_frame = [a for a in frame['landmarks'] if a['name'] == 'LEFT_HIP_frame_reference']
+
+                        mid_hip_y_frame = right_hip_frame[0]['y'] + left_hip_frame[0]['y'] / 2
+                        mid_hip_y_frame_list.append(mid_hip_y_frame)
 
                         frontal_vector = frontal_plane_normal_vector(left_hip, right_hip, left_shoulder, right_shoulder)
                         sagittal_vector = sagittal_plane_normal_vector(left_hip, right_hip)
@@ -142,9 +150,9 @@ def compute_knee_angles(folder_path, output_folder_path):
                 
                 # Save Abduction/Adduction angles and Normal Vector angles to a CSV file with Headers for frame_id, normal_angle, abduction_angle
                 with open(output_path, 'w') as f:
-                    f.write('frame_id,frontal_plane_angle,sagittal_plane_angle,left_abduction_angle,right_abduction_angle,left_flexion_angle,right_flexion_angle\n')
+                    f.write('frame_id,frontal_plane_angle,sagittal_plane_angle,left_abduction_angle,right_abduction_angle,left_flexion_angle,right_flexion_angle,mid_hip_y\n')
                     for i in range(len(frames_list)):
-                        f.write(f"{frames_list[i]['frame']},{frontal_plane_vector_list[i]},{sagittal_plane_vector_list[i]},{left_abduction_adduction_angle_list[i]},{right_abduction_adduction_angle_list[i]},{left_flexion_extension_angle_list[i]},{right_flexion_extension_angle_list[i]}\n")
+                        f.write(f"{frames_list[i]['frame']},{frontal_plane_vector_list[i]},{sagittal_plane_vector_list[i]},{left_abduction_adduction_angle_list[i]},{right_abduction_adduction_angle_list[i]},{left_flexion_extension_angle_list[i]},{right_flexion_extension_angle_list[i]},{mid_hip_y_frame_list[i]}\n")
 
     
 
