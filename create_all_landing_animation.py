@@ -1,9 +1,7 @@
-# Synchronized video (top) + knee-angle plot (bottom) animation
 import cv2, time, os, sys
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from IPython.display import HTML
 import pandas as pd
 
 folder_path = 'ATH_videos_avi_processed/'

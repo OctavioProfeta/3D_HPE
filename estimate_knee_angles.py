@@ -1,7 +1,5 @@
-import json, os, pathlib, cv2, sys
+import json, os, sys
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 
 
 def angle_between_points(p1, p2, p3):
