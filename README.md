@@ -1,4 +1,4 @@
-##### Process the raw _'.avi'_ videos in order to get the landing animation with synchronised knee angles sliders
+##### A) Process the raw _'.avi'_ videos in order to get the landing animation with synchronised knee angles sliders
 
 0. Install the required libraries listed in `requirements.txt`:
 `$ conda create --name <env> --file requirements.txt`
@@ -37,3 +37,24 @@ This process will save all the landing animation in the `landing_animation/` fol
 $ python plot_all_*.py knee_angles_csv/ <folder name>
 ```
 This process will save all figures to `<folder name>`.
+
+#### B) Get the ground truth and synchronised data for training
+
+0. Run the `pose_estimation_videos.py` script if not done already. There should be a `landmarks_summary` folder which contains `.json` files with all the data.
+Download all the `Subjects Data/` folder and put the folder in the current directory.
+
+1. Run the `gt_extraction.py` script to extract the files we are interested in:
+```
+$ python gt_extraction.py
+```
+This will create the folder `ACL_Lengths/` which contains all our ground truth.
+
+2. Run the `create_matched_data.py` script to match the ground truth to the videos and the pose estimation.
+```
+$ python create_matched_data.py landmarks_summary/
+```
+This will create 4 new folders containing the matched data.
+
+3. **(Optional)** Run the `create_all_acl_strain_animation.py`script to get the animation of the landing with the ACL strain on both sides.
+
+ 
