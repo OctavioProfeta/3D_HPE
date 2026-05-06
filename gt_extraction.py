@@ -15,6 +15,7 @@ for subject in sorted(os.listdir(base_dir)):
             session_path = os.path.join(subject_path, session)
             if os.path.isdir(session_path):
                 precut_path = os.path.join(session_path, 'Results')
+                raw_path = os.path.join(session_path, 'raw')
                 for muscle_analysis_folder in sorted(os.listdir(precut_path)):
                     if os.path.isdir(os.path.join(precut_path, muscle_analysis_folder)):
                         muscle_analysis_path = os.path.join(precut_path, muscle_analysis_folder)
@@ -33,3 +34,12 @@ for subject in sorted(os.listdir(base_dir)):
                                 # Copy the Length.sto file to the new location
                                 shutil.copy(length_file_path, new_file_path)
                                 print(f'Copied {length_file_path} to {new_file_path}')
+                        for file in os.listdir(raw_path):
+                            if file.endswith('.mot'):
+                                mot_file_path = os.path.join(raw_path, file)
+                                new_mot_file_name = 'PreCut' + str(int(file[9])-1) + '.mot'
+                                if new_mot_file_name[6] == '0':
+                                    new_mot_file_name = new_mot_file_name.replace(new_mot_file_name[6], '')
+                                new_mot_file_path = os.path.join(new_dir, new_mot_file_name)
+                                shutil.copy(mot_file_path, new_mot_file_path)
+                                print(f'Copied {mot_file_path} to {new_mot_file_path}')

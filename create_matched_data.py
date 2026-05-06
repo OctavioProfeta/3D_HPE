@@ -8,6 +8,7 @@ new_json_folder = 'matched_json/'
 new_sto_folder = 'matched_acl_length/'
 new_video_folder = 'matched_videos/'
 new_csv_folder = 'matched_csv/'
+new_mot_folder = 'matched_mot/'
 
 def create_matched_data(json_folder):
     mismatch = 0
@@ -35,12 +36,15 @@ def create_matched_data(json_folder):
                 os.makedirs(os.path.join(new_sto_folder, ath, session), exist_ok=True)
                 os.makedirs(os.path.join(new_video_folder, ath, session), exist_ok=True)
                 os.makedirs(os.path.join(new_csv_folder, ath, session), exist_ok=True)
+                os.makedirs(os.path.join(new_mot_folder, ath, session), exist_ok=True)
                 shutil.copy(json_path, os.path.join(new_json_folder, ath, session, name + '.json'))
                 shutil.copy(sto_file, os.path.join(new_sto_folder, ath, session, name + '.sto'))
                 video_file = os.path.join('ATH_videos_avi_processed', ath, session, json_file.replace('_results.json', '.mp4'))
                 shutil.copy(video_file, os.path.join(new_video_folder, ath, session, name + '.mp4'))
                 csv_file = os.path.join('knee_angles_csv', ath, session, json_file.replace('_annoted_results.json', '_angles.csv'))
                 shutil.copy(csv_file, os.path.join(new_csv_folder, ath, session, name + '.csv'))
+                mot_file = os.path.join(sto_folder, ath, session, name + '.mot')
+                shutil.copy(mot_file, os.path.join(new_mot_folder, ath, session, name + '.mot'))
     print(f'Total files processed: {count}')
     print(f'Total mismatches: {mismatch}')
     print(f'Percentage of mismatches: {mismatch/count*100:.2f}%')
