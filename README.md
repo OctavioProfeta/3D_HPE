@@ -57,6 +57,13 @@ $ python create_matched_data.py landmarks_summary/ATH_videos_avi/
 ```
 This will create 5 new folders containing the matched data.
 
-3. **(Optional)** Run the `create_all_acl_strain_animation.py`script to get the animation of the landing with the ACL strain on both sides.
+3. Run the `create_training_data.py` to create the folder `Data Training Clean/` folder containing the data used to train the models.
+
+````
+python create_training_data.py
+````
+
+
+4. **(Optional)** Run the `create_all_acl_strain_animation.py`script to get the animation of the landing with the ACL strain on both sides.
 
  
