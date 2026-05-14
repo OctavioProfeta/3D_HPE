@@ -66,4 +66,7 @@ python create_training_data.py
 
 4. **(Optional)** Run the `create_all_acl_strain_animation.py`script to get the animation of the landing with the ACL strain on both sides.
 
+# C) Train the model
+
+1. The `bi_lstm.ipynb` notebook contains everythig needed for training.
  
