@@ -110,7 +110,7 @@ def compute_knee_angles(folder_path, output_folder_path):
                         right_hip_frame = [a for a in frame['landmarks'] if a['name'] == 'RIGHT_HIP_frame_reference']
                         left_hip_frame = [a for a in frame['landmarks'] if a['name'] == 'LEFT_HIP_frame_reference']
 
-                        mid_hip_y_frame = right_hip_frame[0]['y'] + left_hip_frame[0]['y'] / 2
+                        mid_hip_y_frame = (right_hip_frame[0]['y'] + left_hip_frame[0]['y']) / 2
                         mid_hip_y_frame_list.append(mid_hip_y_frame)
 
                         frontal_vector = frontal_plane_normal_vector(left_hip, right_hip, left_shoulder, right_shoulder)
